@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+
+# Playwright MCP scratch
+.playwright-mcp/
+*.png
+*.jpeg
+*.jpg
+*.bmp
+
+# Runtime state (machine-specifiek, niet versiebeheer)
+logs/
+state/
+config/screens.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Lokale secrets / tokens (nooit committen)
+.env
+*.local

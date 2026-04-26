@@ -1,0 +1,132 @@
+# Declaratieve menu-navigatie voor StecaGrid / Kostal Piko OEM-firmware
+#
+# calibration_sequence: reeks schermen die calibrate.py stap-voor-stap
+#   aflegt. Elke stap bevat de knoppen die VANUIT DE VORIGE TOESTAND
+#   worden ingedrukt. Het eerste scherm (home) drukt altijd ESC×5.
+#
+# actions: volledige pad-definities voor menu_engine.py (fase 3).
+#   'duration: service' = kort voor Steca, lang voor Kostal
+#   (gekozen via inverters.yaml service_button_long).
+
+calibration_sequence:
+
+  - id: home
+    description: "Hoofdscherm (stroomopbrengst)"
+    # Eerste stap: altijd terug naar home, dus ESC×5
+    buttons:
+      - { button: ESC, repeat: 5 }
+    prompt: "Zie je het hoofdscherm met de actuele stroomopbrengst (bijv. '1234 W')?"
+
+  - id: instellingen
+    description: "Instellingen-menu"
+    buttons:
+      - { button: SET }
+      - { button: DOWN, repeat: 2 }
+    prompt: "Zie je een menu-scherm met de optie 'Instellingen' of 'Settings'?"
+
+  - id: service_item
+    description: "Service-item in het instellingen-menu"
+    buttons:
+      - { button: SET }
+      - { button: UP }
+    prompt: "Staat de cursor op het item 'Service' in het menu?"
+
+  - id: toetscombinatie_scherm
+    description: "Scherm dat vraagt om SERVICE-toetscombinatie"
+    buttons:
+      - { button: SET }
+    prompt: "Zie je een scherm dat vraagt om een toetscombinatie (ESC+SET / BOTHMIDDLE) in te drukken?"
+
+  - id: service_menu
+    description: "Service-menu (na BOTHMIDDLE)"
+    buttons:
+      - { button: BOTHMIDDLE, duration: service }
+    prompt: "Zie je het service-menu met diverse technische opties?"
+
+  - id: vermogensbegrenzing_item
+    description: "Vermogensbegrenzing-item in het service-menu"
+    buttons:
+      - { button: DOWN, repeat: 4 }
+    prompt: "Staat de cursor op het item 'Vermogensbegrenzing' of 'Power limitation'?"
+
+
+# Operationele paden — gebruikt door menu_engine.py (fase 3).
+# Elke stap is een button-druk of een verify-actie.
+# verify-stappen controleren de BMP-hash via screen_verifier.py.
+
+actions:
+
+  go_home:
+    description: "Reset naar hoofdscherm"
+    steps:
+      - { button: ESC, repeat: 5 }
+
+  navigate_to_power_limit_edit:
+    description: "Navigeer naar vermogensbegrenzing en activeer bewerk-modus"
+    steps:
+      - { action: go_home }
+      - { button: SET }
+      - { button: DOWN, repeat: 2 }
+      - { verify: instellingen }
+      - { button: SET }
+      - { button: UP }
+      - { verify: service_item }
+      - { button: SET }
+      - { verify: toetscombinatie_scherm }
+      - { button: BOTHMIDDLE, duration: service }
+      - { verify: service_menu }
+      - { button: DOWN, repeat: 4 }
+      - { verify: vermogensbegrenzing_item }
+      - { button: SET }
+      - { button: SET }
+
+  confirm_power_limit_edit:
+    description: "Bevestig de nieuwe waarde en keer terug naar het hoofdscherm"
+    steps:
+      - { button: SET }
+      - { action: go_home }
+
+  set_limit_500w:
+    description: "Stel vermogenslimiet in op 500 W (vanaf home)"
+    steps:
+      - { action: go_home }
+      - { button: SET }
+      - { button: DOWN, repeat: 2 }
+      - { verify: instellingen }
+      - { button: SET }
+      - { button: UP }
+      - { verify: service_item }
+      - { button: SET }
+      - { verify: toetscombinatie_scherm }
+      - { button: BOTHMIDDLE, duration: service }
+      - { verify: service_menu }
+      - { button: DOWN, repeat: 4 }
+      - { verify: vermogensbegrenzing_item }
+      - { button: SET }
+      - { button: SET }
+      # Waarde instellen: DOWN × n (n bepaald door adapter op basis van stapgrootte)
+      # Vervolgens: verify: waarde_500w
+      - { button: SET }
+      - { action: go_home }
+
+  clear_limit:
+    description: "Verwijder vermogenslimiet — zet terug op nominaal (vanaf home)"
+    steps:
+      - { action: go_home }
+      - { button: SET }
+      - { button: DOWN, repeat: 2 }
+      - { verify: instellingen }
+      - { button: SET }
+      - { button: UP }
+      - { verify: service_item }
+      - { button: SET }
+      - { verify: toetscombinatie_scherm }
+      - { button: BOTHMIDDLE, duration: service }
+      - { verify: service_menu }
+      - { button: DOWN, repeat: 4 }
+      - { verify: vermogensbegrenzing_item }
+      - { button: SET }
+      - { button: SET }
+      # Waarde instellen: UP × n (n bepaald door adapter op basis van stapgrootte)
+      - { button: SET }
+      - { action: go_home }

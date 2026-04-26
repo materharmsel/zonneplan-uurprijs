@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "c:\\Users\\Maarten\\Documents\\GitHub\\zonneplan-uurprijs\\zonneplan-uurprijs"
+    ],
+    "allow": [
+      "Read(//c/Users/Maarten/.claude/plans/**)"
+    ]
+  }
+}

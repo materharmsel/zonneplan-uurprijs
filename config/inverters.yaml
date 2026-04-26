@@ -1,0 +1,18 @@
+inverters:
+  steca:
+    name: "StecaGrid 2500"
+    ip: "192.168.178.6"
+    nominal_watts: 2500
+    min_watts: 500
+    step_size: 100          # W per knopdruk (bepaald tijdens calibratie)
+    button_delay_ms: 300
+    service_button_long: false  # ESC+SET kort indrukken
+
+  kostal:
+    name: "Kostal Piko 4.2 MP"
+    ip: "192.168.178.5"
+    nominal_watts: 4200
+    min_watts: 500
+    step_size: 100          # W per knopdruk (bepaald tijdens calibratie)
+    button_delay_ms: 300
+    service_button_long: true   # SERVICE moet lang ingedrukt bij Kostal
