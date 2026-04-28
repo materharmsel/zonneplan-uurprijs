@@ -164,6 +164,41 @@ def filter_today(price_per_hour: list[dict]) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Prijs voor huidig uur (gebruikt door controller.py)
+# ---------------------------------------------------------------------------
+
+def fetch_current_price() -> float:
+    """Geeft de elektriciteits-uurprijs voor het huidige uur terug (€/kWh).
+
+    Hergebruikt het token-mechanisme; gooit RuntimeError als er geen tokens
+    zijn of geen prijs beschikbaar is voor het huidige uur.
+    """
+    tokens = load_tokens()
+    if not tokens:
+        raise RuntimeError("Geen tokens — voer eerst in via: python fetch_prices.py")
+
+    access_token = tokens.get("access_token", "")
+    try:
+        connection_uuid = get_electricity_connection(access_token)
+        raw = fetch_prices(connection_uuid, access_token)
+    except PermissionError:
+        log.info("Access token verlopen — vernieuwen...")
+        access_token = refresh_access_token(tokens["refresh_token"])
+        connection_uuid = get_electricity_connection(access_token)
+        raw = fetch_prices(connection_uuid, access_token)
+
+    now = datetime.now(TZ)
+    for entry in raw:
+        dt = datetime.fromisoformat(entry["datetime"]).astimezone(TZ)
+        if dt.date() == now.date() and dt.hour == now.hour:
+            return round(entry["electricity_price"] * 0.0000001, 6)
+
+    raise RuntimeError(
+        f"Geen prijs beschikbaar voor het huidige uur ({now.strftime('%H:%M')})."
+    )
+
+
+# ---------------------------------------------------------------------------
 # Loggen
 # ---------------------------------------------------------------------------
 
