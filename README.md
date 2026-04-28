@@ -31,7 +31,7 @@ Python 3.10 of hoger vereist.
 
 ```bash
 cd ~
-git clone <repo-url> zonneplan-uurprijs
+git clone https://github.com/materharmsel/zonneplan-uurprijs zonneplan-uurprijs
 cd zonneplan-uurprijs
 ```
 
