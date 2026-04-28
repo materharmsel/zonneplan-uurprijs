@@ -154,7 +154,7 @@ def _calibrate_inverter(
         while True:
             answer = input(
                 f"  {prompt}\n"
-                f"  [j]a / [n]ee overslaan / [h]erprobeer knop / [r]eset naar home: "
+                f"  [j]a / [n]ee overslaan / [h]erprobeer knop / [r]eset naar home / [m]anueel: "
             ).strip().lower()
 
             if answer == "j":
@@ -182,6 +182,37 @@ def _calibrate_inverter(
                     _show_image(image)
                 except Exception as exc:
                     print(f"  FOUT: {exc}")
+
+            elif answer == "m":
+                print("  Manuele modus — typ knoppen in (ESC/UP/DOWN/SET/BOTHMIDDLE).")
+                print("  Voeg 'l' toe voor lang (bijv: 'SET l'). Leeg = screenshot nemen. 'q' = stoppen.")
+                while True:
+                    try:
+                        cmd = input("    Knop> ").strip()
+                    except (KeyboardInterrupt, EOFError):
+                        break
+                    if cmd.lower() == "q":
+                        break
+                    if not cmd:
+                        try:
+                            image = inverter_client.get_screen(ip)
+                            _show_image(image)
+                        except Exception as exc:
+                            print(f"    FOUT: {exc}")
+                        continue
+                    parts = cmd.upper().split()
+                    button = parts[0]
+                    duration = "long" if len(parts) > 1 and parts[1] == "L" else "short"
+                    if button not in {"ESC", "UP", "DOWN", "SET", "BOTHMIDDLE"}:
+                        print(f"    Onbekende knop '{button}'.")
+                        continue
+                    try:
+                        print(f"    → {button} ({duration})")
+                        inverter_client.press(ip, button, duration=duration, delay_ms=400)
+                        image = inverter_client.get_screen(ip)
+                        _show_image(image)
+                    except Exception as exc:
+                        print(f"    FOUT: {exc}")
 
             else:
                 print("  Overgeslagen — geen hash opgeslagen voor dit scherm.")
