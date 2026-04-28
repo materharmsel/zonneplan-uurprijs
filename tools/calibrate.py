@@ -2,11 +2,7 @@
 
 import hashlib
 import json
-import os
-import platform
-import subprocess
 import sys
-import tempfile
 import time
 from pathlib import Path
 
@@ -33,12 +29,9 @@ def press_sequence(ip: str, buttons: list[dict], service_long: bool = False) -> 
         button = btn["button"]
         repeat = btn.get("repeat", 1)
         duration_key = btn.get("duration", "short")
-
-        if duration_key == "service":
-            duration = "long" if service_long else "short"
-        else:
-            duration = duration_key
-
+        duration = "long" if (duration_key == "service" and service_long) else (
+            duration_key if duration_key != "service" else "short"
+        )
         for _ in range(repeat):
             inverter_client.press(ip, button, duration=duration, delay_ms=300)
 
@@ -53,23 +46,56 @@ def save_screens(screens: dict, path: Path = SCREENS_JSON) -> None:
 
 
 def _show_image(image: Image.Image) -> None:
-    """Sla screenshot op als tijdelijk bestand en open in de standaard viewer."""
-    with tempfile.NamedTemporaryFile(suffix=".bmp", delete=False) as f:
-        tmppath = f.name
-    image.save(tmppath, format="BMP")
+    """Toont het LCD-scherm als blokgrafiek in de terminal (werkt via SSH)."""
+    # Schaal 256×128 → 64×32 pixels, weergeef als 64×16 rijen half-bloktekens
+    target_w, target_h = 64, 32
+    gray = image.convert("L").resize((target_w, target_h), Image.NEAREST)
 
-    try:
-        system = platform.system()
-        if system == "Windows":
-            os.startfile(tmppath)  # type: ignore[attr-defined]
-        elif system == "Darwin":
-            subprocess.run(["open", tmppath], check=False)
-        else:
-            subprocess.run(["xdg-open", tmppath], check=False)
-    except Exception:
-        pass
+    print()
+    print("  ┌" + "─" * target_w + "┐")
+    for y in range(0, target_h, 2):
+        row = ""
+        for x in range(target_w):
+            top = gray.getpixel((x, y)) > 128
+            bot = gray.getpixel((x, y + 1)) > 128
+            if top and bot:
+                row += "█"
+            elif top:
+                row += "▀"
+            elif bot:
+                row += "▄"
+            else:
+                row += " "
+        print(f"  │{row}│")
+    print("  └" + "─" * target_w + "┘")
+    print()
 
-    print(f"  Screenshot: {tmppath}")
+
+def _go_home(ip: str) -> None:
+    """Reset de inverter naar het hoofdscherm via ESC×5 met settle-pauze."""
+    for _ in range(5):
+        inverter_client.press(ip, "ESC", duration="short", delay_ms=300)
+    time.sleep(0.6)
+
+
+def _navigate_to_step(
+    ip: str,
+    target_id: str,
+    calibration_steps: list[dict],
+    service_long: bool,
+) -> None:
+    """Navigeer vanaf home naar het opgegeven scherm door alle voorgaande stappen te spelen."""
+    _go_home(ip)
+    for step in calibration_steps:
+        if step["id"] == target_id:
+            break
+        if step["id"] != "home" and step.get("buttons"):
+            press_sequence(ip, step["buttons"], service_long=service_long)
+    # Druk dan de knoppen van het doelscherm zelf in
+    for step in calibration_steps:
+        if step["id"] == target_id and target_id != "home" and step.get("buttons"):
+            press_sequence(ip, step["buttons"], service_long=service_long)
+            break
 
 
 def _load_config() -> tuple[dict, dict, dict]:
@@ -99,9 +125,7 @@ def _calibrate_inverter(
     print(f"Calibratie: {inv_cfg['name']} ({ip})")
     print(f"{'=' * 60}")
     print("\nNavigeer naar het hoofdscherm (ESC × 5)...")
-    for _ in range(5):
-        inverter_client.press(ip, "ESC", duration="short", delay_ms=300)
-    time.sleep(0.6)
+    _go_home(ip)
 
     for step in calibration_steps:
         screen_id: str = step["id"]
@@ -112,8 +136,6 @@ def _calibrate_inverter(
 
         print(f"\n--- Scherm: {description} ({key}) ---")
 
-        # Eerste stap is 'home'; die knoppen zijn al ingedrukt voor de loop.
-        # Vanaf de tweede stap drukken we de opgegeven knoppen.
         if screen_id != "home" and buttons:
             print("  Knoppen indrukken...")
             press_sequence(ip, buttons, service_long=service_long)
@@ -129,22 +151,26 @@ def _calibrate_inverter(
         _show_image(image)
 
         while True:
-            answer = input(f"  {prompt}\n  [j]a bevestigen / [n]ee overslaan / [h]erprobeer: ").strip().lower()
+            answer = input(
+                f"  {prompt}\n  [j]a bevestigen / [n]ee overslaan / [h]erprobeer: "
+            ).strip().lower()
+
             if answer == "j":
                 h = compute_hash(image)
                 screens[key] = h
                 print(f"  Hash opgeslagen: {h[:16]}…")
                 save_screens(screens)
                 break
+
             elif answer == "h":
-                print("  Knoppen opnieuw indrukken en scherm ophalen...")
+                print("  Terug naar home en opnieuw navigeren naar dit scherm...")
                 try:
-                    if screen_id != "home" and buttons:
-                        press_sequence(ip, buttons, service_long=service_long)
+                    _navigate_to_step(ip, screen_id, calibration_steps, service_long)
                     image = inverter_client.get_screen(ip)
                     _show_image(image)
                 except Exception as exc:
                     print(f"  FOUT: {exc}")
+
             else:
                 print("  Overgeslagen — geen hash opgeslagen voor dit scherm.")
                 break
