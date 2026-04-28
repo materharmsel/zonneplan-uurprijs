@@ -76,5 +76,45 @@ class TestVerify(unittest.TestCase):
         self.assertEqual(screens, original)
 
 
+class TestIdentify(unittest.TestCase):
+    """Tests voor identify()."""
+
+    def test_returns_screen_id_on_match(self):
+        from screen_verifier import identify
+        img = _make_image(0)
+        screens = {"steca.home": _hash_of(img)}
+        self.assertEqual(identify(img, screens, "steca"), "home")
+
+    def test_returns_none_when_no_match(self):
+        from screen_verifier import identify
+        img = _make_image(0)
+        screens = {"steca.home": "ab" * 32}
+        self.assertIsNone(identify(img, screens, "steca"))
+
+    def test_returns_none_when_screens_empty(self):
+        from screen_verifier import identify
+        self.assertIsNone(identify(_make_image(), {}, "steca"))
+
+    def test_ignores_different_prefix(self):
+        from screen_verifier import identify
+        img = _make_image(0)
+        screens = {"kostal.home": _hash_of(img)}
+        self.assertIsNone(identify(img, screens, "steca"))
+
+    def test_correct_screen_id_extracted(self):
+        from screen_verifier import identify
+        img = _make_image(0)
+        screens = {"steca.instellingen": _hash_of(img)}
+        self.assertEqual(identify(img, screens, "steca"), "instellingen")
+
+    def test_screens_dict_unchanged_after_identify(self):
+        from screen_verifier import identify
+        img = _make_image(0)
+        screens = {"steca.home": _hash_of(img)}
+        original = dict(screens)
+        identify(img, screens, "steca")
+        self.assertEqual(screens, original)
+
+
 if __name__ == "__main__":
     unittest.main()

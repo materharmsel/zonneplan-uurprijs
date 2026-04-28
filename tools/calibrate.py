@@ -7,6 +7,7 @@ import platform
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 import yaml
@@ -100,6 +101,7 @@ def _calibrate_inverter(
     print("\nNavigeer naar het hoofdscherm (ESC × 5)...")
     for _ in range(5):
         inverter_client.press(ip, "ESC", duration="short", delay_ms=300)
+    time.sleep(0.6)
 
     for step in calibration_steps:
         screen_id: str = step["id"]
@@ -135,8 +137,10 @@ def _calibrate_inverter(
                 save_screens(screens)
                 break
             elif answer == "h":
-                print("  Scherm opnieuw ophalen...")
+                print("  Knoppen opnieuw indrukken en scherm ophalen...")
                 try:
+                    if screen_id != "home" and buttons:
+                        press_sequence(ip, buttons, service_long=service_long)
                     image = inverter_client.get_screen(ip)
                     _show_image(image)
                 except Exception as exc:

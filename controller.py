@@ -44,7 +44,8 @@ def _setup_logging() -> None:
 
 
 def _load_config() -> tuple[dict, dict, dict]:
-    inverters = yaml.safe_load(_INVERTERS_YAML.read_text())["inverters"]
+    inverters_raw = yaml.safe_load(_INVERTERS_YAML.read_text())["inverters"]
+    inverters = {inv_id: {"id": inv_id, **cfg} for inv_id, cfg in inverters_raw.items()}
     actions = yaml.safe_load(_MENU_YAML.read_text())["actions"]
     screens = json.loads(_SCREENS_JSON.read_text()) if _SCREENS_JSON.exists() else {}
     return inverters, actions, screens

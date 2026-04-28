@@ -60,23 +60,20 @@ actions:
     description: "Reset naar hoofdscherm"
     steps:
       - { button: ESC, repeat: 5 }
+      - { settle_ms: 600 }
 
   navigate_to_power_limit_edit:
     description: "Navigeer naar vermogensbegrenzing en activeer bewerk-modus"
+    locate_resume: true
     steps:
       - { action: go_home }
       - { button: SET }
-      - { button: DOWN, repeat: 2 }
-      - { verify: instellingen }
+      - { button: DOWN, repeat: 2, expect: instellingen, max_retries: 3 }
       - { button: SET }
-      - { button: UP }
-      - { verify: service_item }
-      - { button: SET }
-      - { verify: toetscombinatie_scherm }
-      - { button: BOTHMIDDLE, duration: service }
-      - { verify: service_menu }
-      - { button: DOWN, repeat: 4 }
-      - { verify: vermogensbegrenzing_item }
+      - { button: UP, expect: service_item, max_retries: 3 }
+      - { button: SET, expect: toetscombinatie_scherm, max_retries: 3 }
+      - { button: BOTHMIDDLE, duration: service, expect: service_menu, max_retries: 3 }
+      - { button: DOWN, repeat: 4, expect: vermogensbegrenzing_item, max_retries: 3 }
       - { button: SET }
       - { button: SET }
 
