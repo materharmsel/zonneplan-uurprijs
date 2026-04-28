@@ -79,6 +79,7 @@ def run() -> None:
         "kostal": kostal_adapter,
     }
 
+    had_error = False
     for inverter_id, inverter_cfg in inverters.items():
         current = state_store.get_state(inverter_id)
         if current == desired:
@@ -90,12 +91,15 @@ def run() -> None:
             adapter = adapter_map[inverter_id]
             adapter.apply(desired, inverter_cfg["ip"], inverter_cfg, actions, screens)
             state_store.set_state(inverter_id, desired)
-            state_store.clear_alarm()
             log.info("%s: staat bijgewerkt naar '%s'", inverter_id, desired)
         except Exception as exc:
+            had_error = True
             msg = f"{inverter_id}: fout bij toepassen '{desired}': {exc}"
             log.error(msg)
             state_store.write_alarm(msg)
+
+    if not had_error:
+        state_store.clear_alarm()
 
 
 if __name__ == "__main__":
