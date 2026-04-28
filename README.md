@@ -20,12 +20,27 @@ geen smart plug, geen AC-onderbreking.
 
 ### 1. Vereisten
 
+Python 3.10 of hoger vereist.
+
+Op Raspberry Pi OS (Debian 12+) moet je een virtuele omgeving gebruiken vanwege
+PEP 668:
+
 ```bash
-sudo apt install python3-pip python3-pil
-pip3 install requests Pillow PyYAML
+# Eenmalig: virtuele omgeving aanmaken
+python3 -m venv ~/zonneplan_env
+
+# Activeer de venv
+source ~/zonneplan_env/bin/activate
+
+# Installeer dependencies
+pip install requests Pillow PyYAML
 ```
 
-Python 3.10 of hoger vereist.
+Controleer achteraf:
+
+```bash
+python3 -c "import requests, PIL, yaml; print('OK')"
+```
 
 ### 2. Repository klonen
 
@@ -37,7 +52,10 @@ cd zonneplan-uurprijs
 
 ### 3. Eerste aanmelding bij Zonneplan
 
+Zorg dat de venv is geactiveerd:
+
 ```bash
+source ~/zonneplan_env/bin/activate
 python3 fetch_prices.py
 ```
 
@@ -46,9 +64,11 @@ Tokens worden opgeslagen in `~/.zonneplan_tokens.json`.
 
 ### 4. Calibratie (eenmalig, samen uitvoeren)
 
-Voer de calibratietool uit terwijl beide inverters bereikbaar zijn:
+Zorg dat de venv is geactiveerd, en voer de calibratietool uit terwijl beide
+inverters bereikbaar zijn:
 
 ```bash
+source ~/zonneplan_env/bin/activate
 python3 tools/calibrate.py
 ```
 
@@ -70,10 +90,13 @@ crontab -e
 Voeg toe (verander `/home/pi` naar jouw werkelijke home-map):
 
 ```
-1 * * * * cd /home/pi/zonneplan-uurprijs && python3 controller.py >> logs/cron.log 2>&1
+1 * * * * /home/pi/zonneplan_env/bin/python3 /home/pi/zonneplan-uurprijs/controller.py >> /home/pi/zonneplan-uurprijs/logs/cron.log 2>&1
 ```
 
 De controller wordt elke minuut 1 van elk uur uitgevoerd (`@hourly :01`).
+
+**Let op:** gebruik het volle pad naar de Python in de virtuele omgeving
+(`~/zonneplan_env/bin/python3`), niet gewoon `python3`.
 
 ---
 
@@ -184,12 +207,14 @@ tail -f logs/controller.log
 ### Testrun met gesimuleerde negatieve prijs
 
 ```bash
+source ~/zonneplan_env/bin/activate
 FAKE_PRICE=-0.01 python3 controller.py
 ```
 
 ### Volledige end-to-end test
 
 ```bash
+source ~/zonneplan_env/bin/activate
 python3 tools/e2e_test.py
 ```
 
@@ -198,6 +223,7 @@ python3 tools/e2e_test.py
 ## Tests draaien
 
 ```bash
+source ~/zonneplan_env/bin/activate
 python3 -m pytest tests/ -v
 ```
 

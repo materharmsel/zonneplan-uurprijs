@@ -67,6 +67,30 @@ bevestigt visueel, hash gaat in `config/screens.json`.
 Tokens in `~/.zonneplan_tokens.json`, log in `~/zonneplan_prices.log`.
 Mag uitgebreid worden (extra functies), niet kapot maken.
 
+## Installatie op Raspberry Pi OS
+
+Op moderne Raspberry Pi OS (Debian 12+) vereist Python 3.11+ een virtuele omgeving
+vanwege PEP 668. Dit is **nodig voor dit project**:
+
+```bash
+# Eenmalig: venv aanmaken in home-directory
+python3 -m venv ~/zonneplan_env
+
+# Voor elke sessie: venv activeren
+source ~/zonneplan_env/bin/activate
+
+# Dan pas werkt pip
+pip install requests Pillow PyYAML
+```
+
+Voor **cron-jobs** en scripts moet het volle pad gebruikt worden:
+
+```bash
+/home/pi/zonneplan_env/bin/python3 /path/to/script.py
+```
+
+Dit wordt in README.md en crontab-instructies duidelijk gemaakt.
+
 ## Codestijl
 
 - Python 3.10+ (gebruikt `dict | None` en `list[dict]`)
