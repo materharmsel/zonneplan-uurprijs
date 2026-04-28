@@ -33,7 +33,8 @@ def press_sequence(ip: str, buttons: list[dict], service_long: bool = False) -> 
             duration_key if duration_key != "service" else "short"
         )
         for _ in range(repeat):
-            inverter_client.press(ip, button, duration=duration, delay_ms=300)
+            print(f"    → {button} ({duration})")
+            inverter_client.press(ip, button, duration=duration, delay_ms=400)
 
 
 def save_screens(screens: dict, path: Path = SCREENS_JSON) -> None:
@@ -152,7 +153,8 @@ def _calibrate_inverter(
 
         while True:
             answer = input(
-                f"  {prompt}\n  [j]a bevestigen / [n]ee overslaan / [h]erprobeer: "
+                f"  {prompt}\n"
+                f"  [j]a / [n]ee overslaan / [h]erprobeer knop / [r]eset naar home: "
             ).strip().lower()
 
             if answer == "j":
@@ -163,7 +165,17 @@ def _calibrate_inverter(
                 break
 
             elif answer == "h":
-                print("  Terug naar home en opnieuw navigeren naar dit scherm...")
+                print("  Zelfde knoppen opnieuw indrukken (vanaf huidige positie)...")
+                try:
+                    if screen_id != "home" and buttons:
+                        press_sequence(ip, buttons, service_long=service_long)
+                    image = inverter_client.get_screen(ip)
+                    _show_image(image)
+                except Exception as exc:
+                    print(f"  FOUT: {exc}")
+
+            elif answer == "r":
+                print("  Reset naar home en volledige hernavigatie...")
                 try:
                     _navigate_to_step(ip, screen_id, calibration_steps, service_long)
                     image = inverter_client.get_screen(ip)
