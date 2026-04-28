@@ -46,8 +46,16 @@ python3 -c "import requests, PIL, yaml; print('OK')"
 
 ```bash
 cd ~
-git clone https://github.com/materharmsel/zonneplan-uurprijs zonneplan-uurprijs
+git clone https://github.com/materharmsel/zonneplan-uurprijs.git zonneplan-uurprijs
 cd zonneplan-uurprijs
+```
+
+Dit repository is openbaar — je hebt geen GitHub-authenticatie nodig.
+
+**Alternatief met SSH** (als je SSH-sleutel hebt ingesteld):
+
+```bash
+git clone git@github.com:materharmsel/zonneplan-uurprijs.git zonneplan-uurprijs
 ```
 
 ### 3. Eerste aanmelding bij Zonneplan
