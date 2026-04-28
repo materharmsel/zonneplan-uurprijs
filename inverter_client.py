@@ -10,21 +10,18 @@ from PIL import Image
 def press(ip: str, button: str, duration: str = "short", delay_ms: int = 300) -> None:
     """Emuleert één knopdruk op de inverter (kort of lang).
 
-    Stuurt de volledige event-sequentie:
-    - kort: clicked → released
-    - lang:  clicked → long → released
+    Het webinterface accepteert query-parameters:
+    - button: ESC, UP, DOWN, SET, BOTHMIDDLE (SERVICE), ESCUP
+    - duration: "short" of "long" (alleen relevant voor SET → LONGSET)
     """
-    base = f"http://{ip}/buttons.html"
+    button_value = button
+    if button == "SET" and duration == "long":
+        button_value = "LONGSET"
 
-    def _get(event: str) -> None:
-        r = requests.get(f"{base}?BUTTON={button}&EVENT={event}", timeout=5)
-        r.raise_for_status()
-        time.sleep(delay_ms / 1000)
-
-    _get("clicked")
-    if duration == "long":
-        _get("long")
-    _get("released")
+    url = f"http://{ip}/page.main.html?BUTTON_PRESSED={button_value}"
+    r = requests.get(url, timeout=5)
+    r.raise_for_status()
+    time.sleep(delay_ms / 1000)
 
 
 def get_screen(ip: str) -> Image.Image:
