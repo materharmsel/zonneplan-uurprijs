@@ -109,6 +109,12 @@ def main() -> None:
         choices=("limited", "normal"),
         help="Voer slechts één fase uit (anders: limited gevolgd door normal)",
     )
+    parser.add_argument(
+        "--delay-ms",
+        type=int,
+        default=1500,
+        help="Pauze tussen knopdrukken in ms (default 1500 — bewust traag voor tests)",
+    )
     args = parser.parse_args()
 
     _header("Steca-only curtailment-test")
@@ -119,6 +125,8 @@ def main() -> None:
         sys.exit(1)
     inv_cfg = inverters["steca"]
     inv_cfg.setdefault("id", "steca")
+    inv_cfg["button_delay_ms"] = args.delay_ms
+    print(f"\n  button_delay_ms voor deze test: {args.delay_ms} ms")
 
     print("\n  Calibratie-check:")
     if not _check_calibration(screens):
