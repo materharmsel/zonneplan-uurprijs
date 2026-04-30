@@ -106,6 +106,18 @@ De controller wordt elke minuut 1 van elk uur uitgevoerd (`@hourly :01`).
 **Let op:** gebruik het volle pad naar de Python in de virtuele omgeving
 (`~/zonneplan_env/bin/python3`), niet gewoon `python3`.
 
+### Belangrijk: geen browser-tab op de inverter-IP tijdens cron
+
+De ingebouwde web-UI (`http://192.168.178.6` of `.5`) heeft auto-refresh op
+de LCD-screenshot. Als die ergens openstaat (laptop, telefoon, tablet) tijdens
+een cron-tick **botst die polling met onze knopdrukken**: knoppen worden
+willekeurig genegeerd of het scherm springt midden in de navigatie terug naar
+home. Symptomen: `alarm.flag` met `VerifyError`, of waardes die niet kloppen.
+
+Sluit dus elke browsertab op de inverters voordat je cron actief wordt.
+Tijdens calibratie en handmatige tests geldt hetzelfde — geen browser
+op de inverter-IP open laten staan.
+
 ---
 
 ## Log-rotatie

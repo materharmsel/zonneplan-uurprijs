@@ -60,6 +60,8 @@ def _check_calibration(screens: dict) -> bool:
         "steca.toetscombinatie_scherm",
         "steca.service_menu",
         "steca.vermogensbegrenzing_item",
+        "steca.power_limit_value_max",
+        "steca.power_limit_value_min",
     }
     aanwezig = set(steca_keys)
     ontbrekend = required - aanwezig

@@ -7,7 +7,12 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(git push *)",
-      "Bash(python -m pytest tests/ -v)"
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(python -m pytest tests/test_menu_engine.py -x --timeout=30)",
+      "Bash(python -m pytest tests/test_menu_engine.py -x)",
+      "Bash(python -m pytest tests/test_adapters.py tests/test_menu_engine.py tests/test_controller.py)",
+      "Bash(python -m pytest tests/)",
+      "Bash(python -m pytest tests/test_adapters.py tests/test_menu_engine.py tests/test_controller.py tests/test_e2e_integration.py)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Maarten\\Documents\\GitHub\\zonneplan-uurprijs\\zonneplan-uurprijs"

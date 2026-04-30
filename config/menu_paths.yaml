@@ -49,6 +49,19 @@ calibration_sequence:
       - { button: DOWN, repeat: 4 }
     prompt: "Staat de cursor op het item 'Vermogensbegrenzing' of 'Power limitation'?"
 
+  - id: power_limit_value_max
+    description: "Edit-scherm vermogenslimiet op nominaal (boven-grens)"
+    buttons:
+      - { button: SET }
+      - { button: SET }
+    prompt: "Toont het edit-scherm precies de nominale waarde (Steca 2500 W / Kostal 4200 W)? Zo niet: kies [m] manueel en gebruik UP/DOWN tot exact deze waarde, dan opnieuw [j]."
+
+  - id: power_limit_value_min
+    description: "Edit-scherm vermogenslimiet op 500 W (onder-grens)"
+    buttons:
+      - { button: DOWN }
+    prompt: "Toont het edit-scherm nu precies 500 W (na 1× DOWN-wrap)? Zo niet: kies [m] manueel."
+
 
 # Operationele paden — gebruikt door menu_engine.py (fase 3).
 # Elke stap is een button-druk of een verify-actie.
