@@ -23,6 +23,37 @@ def compute_hash(image: Image.Image) -> str:
     return hashlib.sha256(image.tobytes()).hexdigest()
 
 
+def collect_hashes(ip: str, n: int = 6, delay_s: float = 0.4) -> list[str]:
+    """Pak n screenshots ~delay_s apart, dedupe — vangt knipperende cursors."""
+    hashes: list[str] = []
+    for i in range(n):
+        if i > 0:
+            time.sleep(delay_s)
+        try:
+            img = inverter_client.get_screen(ip)
+        except Exception as exc:
+            print(f"    screenshot {i + 1}/{n} mislukt: {exc}")
+            continue
+        h = compute_hash(img)
+        if h not in hashes:
+            hashes.append(h)
+    return hashes
+
+
+def merge_hashes(existing, new_hashes: list[str]) -> list[str]:
+    """Combineer bestaande (str of list) met nieuwe hashes, dedupliceer."""
+    if existing is None:
+        merged = []
+    elif isinstance(existing, list):
+        merged = list(existing)
+    else:
+        merged = [existing]
+    for h in new_hashes:
+        if h not in merged:
+            merged.append(h)
+    return merged
+
+
 def press_sequence(ip: str, buttons: list[dict], service_long: bool = False) -> None:
     """Druk een reeks knoppen in op het opgegeven IP."""
     for btn in buttons:
@@ -158,9 +189,16 @@ def _calibrate_inverter(
             ).strip().lower()
 
             if answer == "j":
-                h = compute_hash(image)
-                screens[key] = h
-                print(f"  Hash opgeslagen: {h[:16]}…")
+                print("  6 screenshots ophalen om knipper-varianten te vangen...")
+                new_hashes = collect_hashes(ip, n=6, delay_s=0.4)
+                # Voeg de eerder getoonde screenshot toe als die nog niet zat
+                first_h = compute_hash(image)
+                if first_h not in new_hashes:
+                    new_hashes.insert(0, first_h)
+                merged = merge_hashes(screens.get(key), new_hashes)
+                screens[key] = merged if len(merged) > 1 else merged[0]
+                print(f"  {len(new_hashes)} unieke hash(es) verzameld; "
+                      f"totaal opgeslagen voor {key}: {len(merged)}.")
                 save_screens(screens)
                 break
 

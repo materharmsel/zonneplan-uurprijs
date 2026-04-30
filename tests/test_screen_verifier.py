@@ -116,5 +116,32 @@ class TestIdentify(unittest.TestCase):
         self.assertEqual(screens, original)
 
 
+class TestMultiHashSupport(unittest.TestCase):
+    """Schermen met knipperende cursor hebben meerdere hash-varianten."""
+
+    def test_verify_matches_any_hash_in_list(self):
+        from screen_verifier import verify
+        img = _make_image(0)
+        h = _hash_of(img)
+        # Lijst met 3 hashes — 1 daarvan klopt
+        screens = {"steca.edit": ["other_hash_1", h, "other_hash_2"]}
+        self.assertTrue(verify(img, "steca.edit", screens))
+
+    def test_verify_fails_when_hash_not_in_list(self):
+        from screen_verifier import verify
+        img = _make_image(0)
+        screens = {"steca.edit": ["other_hash_1", "other_hash_2"]}
+        self.assertFalse(verify(img, "steca.edit", screens))
+
+    def test_identify_returns_screen_id_when_hash_in_list(self):
+        from screen_verifier import identify
+        img = _make_image(0)
+        h = _hash_of(img)
+        screens = {"steca.power_limit_value_min": ["alt", h]}
+        self.assertEqual(
+            identify(img, screens, "steca"), "power_limit_value_min"
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

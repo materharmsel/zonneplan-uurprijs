@@ -137,6 +137,27 @@ Calibratie vereist hierdoor 2 extra schermen per inverter:
 `power_limit_value_max` en `power_limit_value_min` (zie
 `menu_paths.yaml` → `calibration_sequence`).
 
+### 6. Edit-schermen hebben een knipperende cursor — multi-hash nodig
+
+Het edit-scherm in vermogensbegrenzing toont een knipperende cursor onder
+de waarde. SHA-256 over de hele bitmap verandert daardoor tussen frames,
+dus één hash per scherm is onvoldoende — verificatie ná een wrap matchte
+soms wel en soms niet.
+
+Oplossing: `screens.json` ondersteunt nu **een lijst van hashes per
+screen-id** (backwards compatible — een enkele string werkt ook nog).
+`screen_verifier.verify` en `screen_verifier.identify` accepteren een
+match als de huidige hash in de lijst zit.
+
+`tools/calibrate.py` neemt bij `[j]a` automatisch 6 screenshots (~400ms
+apart), dedupliceert en bewaart alle unieke varianten. Bij herhaalde
+calibratie van hetzelfde scherm worden nieuwe varianten samengevoegd
+met de bestaande lijst — zo bouwt de hash-set zich op naarmate je
+meer knipperfases vangt.
+
+Voor stabiele schermen (niet-edit, geen cursor) zal er meestal maar
+1 hash overblijven. Voor edit-schermen typisch 2 (cursor aan/uit).
+
 ## Bestaand basis-script
 
 `fetch_prices.py` haalt Zonneplan-prijzen op via de onofficiele API.

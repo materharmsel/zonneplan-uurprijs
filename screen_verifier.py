@@ -1,4 +1,10 @@
-"""BMP-hash verificatie van inverter LCD-schermen tegen gecalibreerde hashes."""
+"""BMP-hash verificatie van inverter LCD-schermen tegen gecalibreerde hashes.
+
+Een screen_id mag één hash (str) of meerdere hashes (lijst) hebben. Meerdere
+hashes zijn nodig voor schermen met een knipperende cursor: SHA-256 over de
+hele bitmap verandert dan tussen frames, dus calibrate.py legt meerdere
+varianten vast en identify/verify accepteert iedere match.
+"""
 
 import hashlib
 
@@ -10,14 +16,22 @@ def hash_image(image: Image.Image) -> str:
     return hashlib.sha256(image.tobytes()).hexdigest()
 
 
-def verify(image: Image.Image, screen_id: str, screens: dict) -> bool:
-    """Vergelijkt het scherm met de opgeslagen referentie-hash.
+def _matches(stored, current_hash: str) -> bool:
+    """True als de huidige hash overeenkomt met de opgeslagen waarde (str of list)."""
+    if isinstance(stored, list):
+        return current_hash in stored
+    return stored == current_hash
 
-    Geeft True terug als screen_id bekend is én de hash overeenkomt.
+
+def verify(image: Image.Image, screen_id: str, screens: dict) -> bool:
+    """Vergelijkt het scherm met de opgeslagen referentie-hash(es).
+
+    Geeft True terug als screen_id bekend is én de hash overeenkomt met
+    één van de opgeslagen varianten.
     """
     if screen_id not in screens:
         return False
-    return hash_image(image) == screens[screen_id]
+    return _matches(screens[screen_id], hash_image(image))
 
 
 def identify(image: Image.Image, screens: dict, prefix: str) -> str | None:
@@ -28,7 +42,7 @@ def identify(image: Image.Image, screens: dict, prefix: str) -> str | None:
     """
     h = hash_image(image)
     full_prefix = prefix + "."
-    for key, stored_hash in screens.items():
-        if key.startswith(full_prefix) and stored_hash == h:
+    for key, stored in screens.items():
+        if key.startswith(full_prefix) and _matches(stored, h):
             return key[len(full_prefix):]
     return None
