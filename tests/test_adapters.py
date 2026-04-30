@@ -65,11 +65,10 @@ class TestStecaBoundaryDetection(unittest.TestCase):
     @patch("steca_adapter.screen_verifier")
     @patch("steca_adapter.inverter_client")
     @patch("steca_adapter.menu_engine")
-    def test_limited_when_at_max_does_one_down_and_confirms(
+    def test_limited_when_at_max_does_one_up_and_confirms(
         self, mock_engine, mock_client, mock_verifier
     ):
-        """Op max-boundary: 1× DOWN-wrap → verify min → confirm."""
-        # Eerste identify-call: op max. Tweede (na DOWN): op min.
+        """Op max-boundary: 1× UP-wrap (omgekeerde richting!) → verify min → confirm."""
         mock_verifier.identify.side_effect = [
             "power_limit_value_max",
             "power_limit_value_min",
@@ -80,15 +79,15 @@ class TestStecaBoundaryDetection(unittest.TestCase):
 
         self.assertEqual(mock_client.press.call_count, 1)
         button_arg = mock_client.press.call_args_list[0][0][1]
-        self.assertEqual(button_arg, "DOWN")
+        self.assertEqual(button_arg, "UP")
 
     @patch("steca_adapter.screen_verifier")
     @patch("steca_adapter.inverter_client")
     @patch("steca_adapter.menu_engine")
-    def test_normal_when_at_min_does_one_up_and_confirms(
+    def test_normal_when_at_min_does_one_down_and_confirms(
         self, mock_engine, mock_client, mock_verifier
     ):
-        """Op min-boundary, doel normal: 1× UP-wrap → verify max → confirm."""
+        """Op min-boundary, doel normal: 1× DOWN-wrap (omgekeerde richting!) → verify max → confirm."""
         mock_verifier.identify.side_effect = [
             "power_limit_value_min",
             "power_limit_value_max",
@@ -99,7 +98,7 @@ class TestStecaBoundaryDetection(unittest.TestCase):
 
         self.assertEqual(mock_client.press.call_count, 1)
         button_arg = mock_client.press.call_args_list[0][0][1]
-        self.assertEqual(button_arg, "UP")
+        self.assertEqual(button_arg, "DOWN")
 
     @patch("steca_adapter.screen_verifier")
     @patch("steca_adapter.inverter_client")
@@ -181,9 +180,10 @@ class TestKostalBoundaryDetection(unittest.TestCase):
     @patch("kostal_adapter.screen_verifier")
     @patch("kostal_adapter.inverter_client")
     @patch("kostal_adapter.menu_engine")
-    def test_limited_at_max_does_one_down(
+    def test_limited_at_max_does_one_up(
         self, mock_engine, mock_client, mock_verifier
     ):
+        """Op max-boundary, doel limited: 1× UP wrapt naar min."""
         mock_verifier.identify.side_effect = [
             "power_limit_value_max",
             "power_limit_value_min",
@@ -193,7 +193,7 @@ class TestKostalBoundaryDetection(unittest.TestCase):
         apply("limited", IP_KOSTAL, KOSTAL_CFG, ACTIONS, SCREENS)
 
         self.assertEqual(mock_client.press.call_count, 1)
-        self.assertEqual(mock_client.press.call_args_list[0][0][1], "DOWN")
+        self.assertEqual(mock_client.press.call_args_list[0][0][1], "UP")
 
     @patch("kostal_adapter.screen_verifier")
     @patch("kostal_adapter.inverter_client")

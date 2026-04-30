@@ -47,7 +47,10 @@ def apply(
 
     target = "power_limit_value_min" if desired_state == "limited" else "power_limit_value_max"
     other = "power_limit_value_max" if desired_state == "limited" else "power_limit_value_min"
-    direction = "DOWN" if desired_state == "limited" else "UP"
+    # Wrap-richting is OMGEKEERD aan de "logische" richting:
+    # - Vanaf MAX wrapt UP naar MIN (DOWN doet daar gewoon -10W)
+    # - Vanaf MIN wrapt DOWN naar MAX (UP doet daar gewoon +10W)
+    direction = "UP" if desired_state == "limited" else "DOWN"
 
     menu_engine.run_action("navigate_to_power_limit_edit", ip, inverter_cfg, actions, screens)
 

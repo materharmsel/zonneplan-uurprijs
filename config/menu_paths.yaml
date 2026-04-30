@@ -59,8 +59,8 @@ calibration_sequence:
   - id: power_limit_value_min
     description: "Edit-scherm vermogenslimiet op 500 W (onder-grens)"
     buttons:
-      - { button: DOWN }
-    prompt: "Toont het edit-scherm nu precies 500 W (na 1× DOWN-wrap)? Zo niet: kies [m] manueel."
+      - { button: UP }
+    prompt: "Toont het edit-scherm nu precies 500 W (na 1× UP-wrap vanaf nominaal)? Zo niet: kies [m] manueel."
 
 
 # Operationele paden — gebruikt door menu_engine.py (fase 3).

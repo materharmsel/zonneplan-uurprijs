@@ -107,11 +107,14 @@ voor het aantal sweeps (zie punt 5), maar is bewaard voor referentie.
 
 ### 5. Vermogenslimiet wrap-around → boundary-detectie i.p.v. sweep
 
-Een Steca-DOWN op 500 W wrapt naar 2500 W (en omgekeerd UP op 2500 → 500).
-Dat betekent: **een naïeve "200× DOWN" sweep is niet veilig.** Vanaf een
-willekeurige tussenwaarde (bijv. 1000 W) eindigt zo'n sweep door de
-mod-2000 wrap niet op 500 W maar op de oorspronkelijke waarde — onveilig
-en stilzwijgend fout.
+Het edit-scherm wrapt **in de tegenovergestelde richting** aan de rand:
+
+- Op MAX (2500 W): DOWN doet gewoon -10 W (→ 2490). **UP** wrapt naar MIN.
+- Op MIN (500 W): UP doet gewoon +10 W (→ 510). **DOWN** wrapt naar MAX.
+
+Een naïeve "200× DOWN" sweep is daarom niet veilig: vanaf een willekeurige
+tussenwaarde (bijv. 1000 W) eindigt zo'n sweep door de mod-2000 wrap niet
+op 500 W maar op de oorspronkelijke waarde — stilzwijgend fout.
 
 Daarom werkt de adapter nu met **boundary-hash-detectie**:
 
@@ -119,7 +122,9 @@ Daarom werkt de adapter nu met **boundary-hash-detectie**:
 2. Screenshot + identify → vergelijk met `power_limit_value_min` en
    `power_limit_value_max` hashes
 3. Als al op de doel-boundary: 0 knopdrukken, alleen confirm
-4. Als op de andere boundary: 1× DOWN/UP wrap, verifieer doel-hash, confirm
+4. Als op de andere boundary: 1× wrap-druk in de **omgekeerde richting**
+   (UP om naar min te gaan, DOWN om naar max te gaan), verifieer
+   doel-hash, confirm
 5. Als op een tussenwaarde: **GEEN sweep** — `UnknownPositionError` →
    `alarm.flag` via controller. Vereist handmatige interventie (inverter
    handmatig naar 500 W of nominaal zetten en dan herstart).
