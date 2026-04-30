@@ -115,6 +115,12 @@ def main() -> None:
         default=1500,
         help="Pauze tussen knopdrukken in ms (default 1500 — bewust traag voor tests)",
     )
+    parser.add_argument(
+        "--settle-ms",
+        type=int,
+        default=1200,
+        help="Pauze tussen knopdruk en screenshot-fetch in ms (default 1200)",
+    )
     args = parser.parse_args()
 
     _header("Steca-only curtailment-test")
@@ -126,7 +132,9 @@ def main() -> None:
     inv_cfg = inverters["steca"]
     inv_cfg.setdefault("id", "steca")
     inv_cfg["button_delay_ms"] = args.delay_ms
+    inv_cfg["screenshot_settle_ms"] = args.settle_ms
     print(f"\n  button_delay_ms voor deze test: {args.delay_ms} ms")
+    print(f"  screenshot_settle_ms voor deze test: {args.settle_ms} ms")
 
     print("\n  Calibratie-check:")
     if not _check_calibration(screens):

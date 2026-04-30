@@ -22,7 +22,9 @@ def _press_and_locate(
 ) -> None:
     """Verifieert na een knopdruk of het verwachte scherm bereikt is; herprobeert zo niet."""
     prefix = inverter_cfg.get("id", "")
+    settle_ms = inverter_cfg.get("screenshot_settle_ms", 800)
     for attempt in range(max_retries + 1):
+        time.sleep(settle_ms / 1000)
         image = inverter_client.get_screen(ip)
         current = screen_verifier.identify(image, screens, prefix)
         if current == expected_id:
@@ -39,6 +41,8 @@ def _press_and_locate(
 def _find_resume_index(ip: str, inverter_cfg: dict, steps: list, screens: dict) -> int:
     """Identificeert het huidige scherm en geeft de hervatindex in steps terug."""
     prefix = inverter_cfg.get("id", "")
+    settle_ms = inverter_cfg.get("screenshot_settle_ms", 800)
+    time.sleep(settle_ms / 1000)
     image = inverter_client.get_screen(ip)
     current = screen_verifier.identify(image, screens, prefix)
     if current is None:
@@ -107,6 +111,8 @@ def run_action(
 
         elif "verify" in step:
             screen_id = step["verify"]
+            settle_ms = inverter_cfg.get("screenshot_settle_ms", 800)
+            time.sleep(settle_ms / 1000)
             image = inverter_client.get_screen(ip)
             if not screen_verifier.verify(image, screen_id, screens):
                 for _ in range(5):
