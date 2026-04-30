@@ -185,7 +185,10 @@ def _calibrate_inverter(
 
             elif answer == "m":
                 print("  Manuele modus — typ knoppen in (ESC/UP/DOWN/SET/BOTHMIDDLE).")
-                print("  Voeg 'l' toe voor lang (bijv: 'SET l'). Leeg = screenshot nemen. 'q' = stoppen.")
+                print("  Voeg 'l' toe voor lang (bijv: 'SET l'). Leeg = screenshot nemen.")
+                print("  's' = screenshot na laatste knop. 'q' = stoppen.")
+                print("  (Na een knopdruk wordt NIET automatisch een screenshot gemaakt,")
+                print("   dat zou de menustate van de inverter kunnen resetten.)")
                 while True:
                     try:
                         cmd = input("    Knop> ").strip()
@@ -193,7 +196,7 @@ def _calibrate_inverter(
                         break
                     if cmd.lower() == "q":
                         break
-                    if not cmd:
+                    if not cmd or cmd.lower() == "s":
                         try:
                             image = inverter_client.get_screen(ip)
                             _show_image(image)
@@ -207,10 +210,8 @@ def _calibrate_inverter(
                         print(f"    Onbekende knop '{button}'.")
                         continue
                     try:
-                        print(f"    → {button} ({duration})")
+                        print(f"    → {button} ({duration})  (typ Enter voor screenshot)")
                         inverter_client.press(ip, button, duration=duration, delay_ms=400)
-                        image = inverter_client.get_screen(ip)
-                        _show_image(image)
                     except Exception as exc:
                         print(f"    FOUT: {exc}")
 

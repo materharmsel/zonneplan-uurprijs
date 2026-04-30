@@ -3,7 +3,11 @@
     "allow": [
       "Read(//c/Users/Maarten/.claude/plans/**)",
       "WebSearch",
-      "WebFetch(domain:www.manualslib.com)"
+      "WebFetch(domain:www.manualslib.com)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(python -m pytest tests/ -v)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Maarten\\Documents\\GitHub\\zonneplan-uurprijs\\zonneplan-uurprijs"
