@@ -8,8 +8,10 @@ import inverter_client
 
 DEFAULT_IP = "192.168.178.6"
 ip = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_IP
+# Default: nieuwe API (Steca). Voor Kostal: tweede argument 'legacy'.
+api_style = sys.argv[2] if len(sys.argv) > 2 else "new"
 
-print(f"\nVerbonden met {ip}")
+print(f"\nVerbonden met {ip}  [api_style={api_style}]")
 print("Druk knoppen in en vertel wat je op het inverter-display ziet.")
 print()
 print("Beschikbare knoppen:")
@@ -39,7 +41,7 @@ while True:
         continue
 
     try:
-        inverter_client.press(ip, button, duration=duration, delay_ms=400)
+        inverter_client.press(ip, button, duration=duration, delay_ms=400, api_style=api_style)
         print(f"  → {button} ({duration}) ingedrukt.")
         print(f"  Wat zie je nu op het display?")
     except Exception as exc:

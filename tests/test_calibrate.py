@@ -61,7 +61,7 @@ class TestPressSequence(unittest.TestCase):
         """Één knop zonder repeat → precies één press()-aanroep."""
         calibrate.press_sequence("1.2.3.4", [{"button": "ESC"}])
         mock_client.press.assert_called_once_with(
-            "1.2.3.4", "ESC", duration="short", delay_ms=400
+            "1.2.3.4", "ESC", duration="short", delay_ms=400, api_style="new"
         )
 
     @patch("calibrate.inverter_client")
@@ -81,7 +81,7 @@ class TestPressSequence(unittest.TestCase):
             service_long=False,
         )
         mock_client.press.assert_called_once_with(
-            "1.2.3.4", "BOTHMIDDLE", duration="short", delay_ms=400
+            "1.2.3.4", "BOTHMIDDLE", duration="short", delay_ms=400, api_style="new"
         )
 
     @patch("calibrate.inverter_client")
@@ -93,7 +93,7 @@ class TestPressSequence(unittest.TestCase):
             service_long=True,
         )
         mock_client.press.assert_called_once_with(
-            "1.2.3.4", "BOTHMIDDLE", duration="long", delay_ms=400
+            "1.2.3.4", "BOTHMIDDLE", duration="long", delay_ms=400, api_style="new"
         )
 
     @patch("calibrate.inverter_client")

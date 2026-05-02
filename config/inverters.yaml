@@ -9,6 +9,7 @@ inverters:
     screenshot_settle_ms: 800  # extra pauze vóór screenshot (anti menu-state-reset)
     value_step_delay_ms: 100   # snellere delay voor waarde-stap-loop (geen screenshot)
     service_button_long: false # ESC+SET kort indrukken
+    api_style: new             # /page.main.html?BUTTON_PRESSED=...
 
   kostal:
     name: "Kostal Piko 4.2 MP"
@@ -20,3 +21,4 @@ inverters:
     screenshot_settle_ms: 800
     value_step_delay_ms: 100
     service_button_long: true  # SERVICE moet lang ingedrukt bij Kostal
+    api_style: legacy          # /buttons.html?BUTTON=...&EVENT=clicked|long|released

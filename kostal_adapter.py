@@ -42,6 +42,7 @@ def apply(
 ) -> None:
     """Past desired_state ('limited' of 'normal') toe op de inverter."""
     value_step_delay_ms = inverter_cfg.get("value_step_delay_ms", 100)
+    api_style = inverter_cfg.get("api_style", "new")
 
     target = "power_limit_value_min" if desired_state == "limited" else "power_limit_value_max"
     other = "power_limit_value_max" if desired_state == "limited" else "power_limit_value_min"
@@ -59,7 +60,7 @@ def apply(
         log.info("%s: al op doel-waarde — alleen bevestigen", ip)
     elif current == other:
         log.info("%s: op andere boundary — 1× %s om te wrappen", ip, direction)
-        inverter_client.press(ip, direction, duration="short", delay_ms=value_step_delay_ms)
+        inverter_client.press(ip, direction, duration="short", delay_ms=value_step_delay_ms, api_style=api_style)
         verified = _identify_value_screen(ip, inverter_cfg, screens)
         if verified != target:
             raise RuntimeError(

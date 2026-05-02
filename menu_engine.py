@@ -23,6 +23,7 @@ def _press_and_locate(
     """Verifieert na een knopdruk of het verwachte scherm bereikt is; herprobeert zo niet."""
     prefix = inverter_cfg.get("id", "")
     settle_ms = inverter_cfg.get("screenshot_settle_ms", 800)
+    api_style = inverter_cfg.get("api_style", "new")
     for attempt in range(max_retries + 1):
         time.sleep(settle_ms / 1000)
         image = inverter_client.get_screen(ip)
@@ -30,9 +31,9 @@ def _press_and_locate(
         if current == expected_id:
             return
         if attempt < max_retries:
-            inverter_client.press(ip, button, duration=duration, delay_ms=delay_ms)
+            inverter_client.press(ip, button, duration=duration, delay_ms=delay_ms, api_style=api_style)
     for _ in range(5):
-        inverter_client.press(ip, "ESC", delay_ms=delay_ms)
+        inverter_client.press(ip, "ESC", delay_ms=delay_ms, api_style=api_style)
     raise VerifyError(
         f"Kon scherm '{expected_id}' niet bereiken op {ip} na {max_retries + 1} pogingen"
     )
@@ -78,6 +79,7 @@ def run_action(
 
     delay_ms = inverter_cfg.get("button_delay_ms", 300)
     service_long = inverter_cfg.get("service_button_long", False)
+    api_style = inverter_cfg.get("api_style", "new")
 
     steps = actions[action_name]["steps"]
 
@@ -103,7 +105,7 @@ def run_action(
             else:
                 duration = raw_duration
             for _ in range(repeat):
-                inverter_client.press(ip, button, duration=duration, delay_ms=delay_ms)
+                inverter_client.press(ip, button, duration=duration, delay_ms=delay_ms, api_style=api_style)
             if expect and screens:
                 _press_and_locate(
                     ip, button, duration, expect, max_retries, delay_ms, inverter_cfg, screens
@@ -116,7 +118,7 @@ def run_action(
             image = inverter_client.get_screen(ip)
             if not screen_verifier.verify(image, screen_id, screens):
                 for _ in range(5):
-                    inverter_client.press(ip, "ESC", delay_ms=delay_ms)
+                    inverter_client.press(ip, "ESC", delay_ms=delay_ms, api_style=api_style)
                 raise VerifyError(
                     f"Scherm '{screen_id}' niet herkend op {ip} — recovery uitgevoerd (ESC×5)"
                 )

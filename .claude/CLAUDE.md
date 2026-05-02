@@ -25,15 +25,31 @@ Beide inverters delen dezelfde OEM-webinterface (Kostal nam Steca over).
 
 ## Aansturings-API (kern van dit project)
 
-```
-GET http://<inverter-ip>/buttons.html?BUTTON=<naam>&EVENT=<event>
-GET http://<inverter-ip>/gen.screenshot.bmp     # 256×128 LCD-screenshot
-```
+De twee inverters spreken **verschillende URL-stijlen** (vastgelegd via
+`api_style` in `inverters.yaml`):
 
+**Steca — `api_style: new`**
+```
+GET http://192.168.178.6/page.main.html?BUTTON_PRESSED=<naam>
+```
+- BUTTON_PRESSED: `ESC` | `UP` | `DOWN` | `SET` | `BOTHMIDDLE` | `LONGSET`
+- Eén GET per knopdruk; lang = `LONGSET` (alleen voor SET-knop relevant)
+
+**Kostal Piko — `api_style: legacy`**
+```
+GET http://192.168.178.5/buttons.html?BUTTON=<naam>&EVENT=<event>
+```
 - BUTTON: `ESC` | `UP` | `DOWN` | `SET` | `BOTHMIDDLE`
 - EVENT: `clicked` → `released` (kort) of `clicked` → `long` → `released`
+- `clicked` zonder `released` laat de knop "ingedrukt" — altijd het paar sturen
+
+**Beide:**
+```
+GET http://<inverter-ip>/gen.screenshot.bmp     # 256×128 LCD-screenshot
+```
 - Geen authenticatie op LAN
-- Verschil: bij Kostal moet SERVICE (BOTHMIDDLE) **lang** ingedrukt
+- Bij Kostal moet SERVICE (BOTHMIDDLE) **lang** ingedrukt
+  (`service_button_long: true`)
 
 ## Harde constraints (niet schenden)
 

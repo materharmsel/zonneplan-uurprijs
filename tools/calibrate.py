@@ -54,7 +54,12 @@ def merge_hashes(existing, new_hashes: list[str]) -> list[str]:
     return merged
 
 
-def press_sequence(ip: str, buttons: list[dict], service_long: bool = False) -> None:
+def press_sequence(
+    ip: str,
+    buttons: list[dict],
+    service_long: bool = False,
+    api_style: str = "new",
+) -> None:
     """Druk een reeks knoppen in op het opgegeven IP."""
     for btn in buttons:
         button = btn["button"]
@@ -65,7 +70,7 @@ def press_sequence(ip: str, buttons: list[dict], service_long: bool = False) -> 
         )
         for _ in range(repeat):
             print(f"    → {button} ({duration})")
-            inverter_client.press(ip, button, duration=duration, delay_ms=400)
+            inverter_client.press(ip, button, duration=duration, delay_ms=400, api_style=api_style)
 
 
 def save_screens(screens: dict, path: Path = SCREENS_JSON) -> None:
@@ -103,10 +108,10 @@ def _show_image(image: Image.Image) -> None:
     print()
 
 
-def _go_home(ip: str) -> None:
+def _go_home(ip: str, api_style: str = "new") -> None:
     """Reset de inverter naar het hoofdscherm via ESC×5 met settle-pauze."""
     for _ in range(5):
-        inverter_client.press(ip, "ESC", duration="short", delay_ms=300)
+        inverter_client.press(ip, "ESC", duration="short", delay_ms=300, api_style=api_style)
     time.sleep(0.6)
 
 
@@ -115,18 +120,19 @@ def _navigate_to_step(
     target_id: str,
     calibration_steps: list[dict],
     service_long: bool,
+    api_style: str = "new",
 ) -> None:
     """Navigeer vanaf home naar het opgegeven scherm door alle voorgaande stappen te spelen."""
-    _go_home(ip)
+    _go_home(ip, api_style=api_style)
     for step in calibration_steps:
         if step["id"] == target_id:
             break
         if step["id"] != "home" and step.get("buttons"):
-            press_sequence(ip, step["buttons"], service_long=service_long)
+            press_sequence(ip, step["buttons"], service_long=service_long, api_style=api_style)
     # Druk dan de knoppen van het doelscherm zelf in
     for step in calibration_steps:
         if step["id"] == target_id and target_id != "home" and step.get("buttons"):
-            press_sequence(ip, step["buttons"], service_long=service_long)
+            press_sequence(ip, step["buttons"], service_long=service_long, api_style=api_style)
             break
 
 
@@ -152,12 +158,13 @@ def _calibrate_inverter(
     """Voer de calibratie-sessie uit voor één inverter. Geeft bijgewerkte screens terug."""
     ip = inv_cfg["ip"]
     service_long: bool = inv_cfg.get("service_button_long", False)
+    api_style: str = inv_cfg.get("api_style", "new")
 
     print(f"\n{'=' * 60}")
-    print(f"Calibratie: {inv_cfg['name']} ({ip})")
+    print(f"Calibratie: {inv_cfg['name']} ({ip})  [api_style={api_style}]")
     print(f"{'=' * 60}")
     print("\nNavigeer naar het hoofdscherm (ESC × 5)...")
-    _go_home(ip)
+    _go_home(ip, api_style=api_style)
 
     for step in calibration_steps:
         screen_id: str = step["id"]
@@ -170,7 +177,7 @@ def _calibrate_inverter(
 
         if screen_id != "home" and buttons:
             print("  Knoppen indrukken...")
-            press_sequence(ip, buttons, service_long=service_long)
+            press_sequence(ip, buttons, service_long=service_long, api_style=api_style)
 
         print("  Screenshot ophalen...")
         try:
@@ -206,7 +213,7 @@ def _calibrate_inverter(
                 print("  Zelfde knoppen opnieuw indrukken (vanaf huidige positie)...")
                 try:
                     if screen_id != "home" and buttons:
-                        press_sequence(ip, buttons, service_long=service_long)
+                        press_sequence(ip, buttons, service_long=service_long, api_style=api_style)
                     image = inverter_client.get_screen(ip)
                     _show_image(image)
                 except Exception as exc:
@@ -215,7 +222,7 @@ def _calibrate_inverter(
             elif answer == "r":
                 print("  Reset naar home en volledige hernavigatie...")
                 try:
-                    _navigate_to_step(ip, screen_id, calibration_steps, service_long)
+                    _navigate_to_step(ip, screen_id, calibration_steps, service_long, api_style=api_style)
                     image = inverter_client.get_screen(ip)
                     _show_image(image)
                 except Exception as exc:
@@ -249,7 +256,7 @@ def _calibrate_inverter(
                         continue
                     try:
                         print(f"    → {button} ({duration})  (typ Enter voor screenshot)")
-                        inverter_client.press(ip, button, duration=duration, delay_ms=400)
+                        inverter_client.press(ip, button, duration=duration, delay_ms=400, api_style=api_style)
                     except Exception as exc:
                         print(f"    FOUT: {exc}")
 
