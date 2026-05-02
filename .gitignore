@@ -12,13 +12,14 @@ __pycache__/
 venv/
 env/
 
-# IDE / editor
+# IDE / editor en dev tools
 .vscode/
 .idea/
 *.swp
-
-# Playwright MCP scratch
 .playwright-mcp/
+.claude/
+
+# Calibratie-screenshots (machine-specifiek)
 *.png
 *.jpeg
 *.jpg
