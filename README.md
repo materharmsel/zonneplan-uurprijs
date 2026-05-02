@@ -14,6 +14,11 @@ gaan de inverters automatisch terug naar vol vermogen.
 Aansturing via de ingebouwde webinterface (knop-emulatie). Geen RS485,
 geen smart plug, geen AC-onderbreking.
 
+De twee inverters spreken **verschillende URL-stijlen**: Steca gebruikt
+`/page.main.html?BUTTON_PRESSED=...`, Kostal Piko de oudere
+`/buttons.html?BUTTON=...&EVENT=...`. Dit is per inverter geconfigureerd
+via `api_style: new|legacy` in `config/inverters.yaml`.
+
 ---
 
 ## Installatie
@@ -166,8 +171,11 @@ zonneplan-uurprijs/
 │   ├── inverter_state.json  # Huidige staat per inverter
 │   └── alarm.flag           # Aanwezig bij fout (zie Troubleshooting)
 └── tools/
-    ├── calibrate.py       # Calibratie-tool (eenmalig)
-    └── e2e_test.py        # End-to-end testscript
+    ├── calibrate.py            # Calibratie-tool (eenmalig per inverter)
+    ├── nav_debug.py            # Handmatig knop-voor-knop navigeren (debug)
+    ├── test_steca_curtail.py   # Steca-only curtailment-cyclus zonder prijslogica
+    ├── test_kostal_curtail.py  # Kostal-only curtailment-cyclus zonder prijslogica
+    └── e2e_test.py             # Volledige end-to-end test (beide inverters)
 ```
 
 ---
@@ -206,6 +214,14 @@ Het bestand bevat een timestamp en de reden van de fout. Mogelijke oorzaken:
 - **Inverter staat in onverwacht submenu** — de controller stuurt altijd
   eerst `ESC×5` om terug naar home te gaan. Als dit herhaaldelijk mislukt,
   controleer dan de inverter fysiek.
+- **Knopdrukken doen niets op het LCD** — dan zit waarschijnlijk de
+  verkeerde `api_style` in `config/inverters.yaml`. Steca gebruikt `new`
+  (page.main.html), Kostal gebruikt `legacy` (buttons.html). Test
+  handmatig in de browser welke URL het LCD laat reageren.
+- **`ConnectTimeout` halverwege een cyclus** — de inverter-webserver is
+  overbelast geraakt. Niet erg: de volgende cron-tick probeert vanzelf
+  opnieuw vanaf home. Komt vaker voor bij intensief testen achter elkaar
+  dan tijdens normale uurlijkse runs.
 
 Het alarm wordt automatisch gewist bij de eerstvolgende succesvolle run.
 
@@ -231,6 +247,20 @@ source ~/zonneplan_env/bin/activate
 FAKE_PRICE=-0.01 python3 controller.py
 ```
 
+### Per-inverter test (zonder prijslogica)
+
+Veiligste manier om één inverter geïsoleerd te testen — geen prijscheck,
+geen state_store, alleen menunavigatie en boundary-detectie:
+
+```bash
+source ~/zonneplan_env/bin/activate
+python3 tools/test_steca_curtail.py     # alleen Steca
+python3 tools/test_kostal_curtail.py    # alleen Kostal
+```
+
+Tussen twee opeenvolgende runs ~1-2 minuten wachten — anders raakt de
+inverter-webserver klem (TIME_WAIT op de socket-pool).
+
 ### Volledige end-to-end test
 
 ```bash
@@ -253,6 +283,10 @@ python3 -m pytest tests/ -v
 
 - **Drempelwaarde** — pas `_desired_state()` aan in `controller.py`.
 - **Doelvermogen** — pas `min_watts` aan in `config/inverters.yaml`.
-- **Stapgrootte** — pas `step_size` aan in `config/inverters.yaml`; kalibreer
-  opnieuw als de waarde niet overeenkomt met de werkelijkheid.
+- **Stapgrootte** — `step_size` in `config/inverters.yaml` is alleen
+  informatief; het werkelijke instellen gebeurt via boundary-detectie
+  (max ↔ min via 1× wrap-druk), niet via een sweep.
+- **API-stijl** — als je een nieuwe inverter toevoegt: probeer eerst in
+  de browser welke URL het LCD laat reageren en zet `api_style` op
+  `new` (page.main.html) of `legacy` (buttons.html).
 - **Knop-vertraging** — pas `button_delay_ms` aan in `config/inverters.yaml`.
