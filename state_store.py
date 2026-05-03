@@ -6,8 +6,9 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-_DEFAULT_STATE = Path("state/inverter_state.json")
-_DEFAULT_ALARM = Path("state/alarm.flag")
+_DIR = Path(__file__).parent
+_DEFAULT_STATE = _DIR / "state" / "inverter_state.json"
+_DEFAULT_ALARM = _DIR / "state" / "alarm.flag"
 
 
 def get_state(inverter_id: str, path: Path = _DEFAULT_STATE) -> str | None:

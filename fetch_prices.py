@@ -37,16 +37,24 @@ HEADERS = {
     "x-app-environment": "production",
 }
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s  %(levelname)-8s  %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[
-        logging.FileHandler(LOG_FILE, encoding="utf-8"),
-        logging.StreamHandler(sys.stdout),
-    ],
-)
 log = logging.getLogger(__name__)
+
+
+def _setup_logging() -> None:
+    """Configureer logging voor handmatig CLI-gebruik (`python fetch_prices.py`).
+
+    Wordt expliciet door main() aangeroepen — niet op import-tijd, anders zou
+    een importerende module (zoals controller.py) zijn eigen logging-setup
+    overruled zien."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s  %(levelname)-8s  %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        handlers=[
+            logging.FileHandler(LOG_FILE, encoding="utf-8"),
+            logging.StreamHandler(sys.stdout),
+        ],
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -125,6 +133,8 @@ def login_flow() -> dict:
 
 def get_electricity_connection(access_token: str) -> str:
     r = requests.get(f"{BASE_URL}/user-accounts/me", headers=auth_headers(access_token), timeout=15)
+    if r.status_code == 401:
+        raise PermissionError("401")
     r.raise_for_status()
     for group in r.json()["data"]["address_groups"]:
         for conn in group["connections"]:
@@ -225,6 +235,7 @@ def log_prices(prices: list[dict]) -> None:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    _setup_logging()
     tokens = load_tokens()
     if not tokens:
         tokens = login_flow()

@@ -86,6 +86,23 @@ class TestFetchCurrentPriceTokenRefresh(unittest.TestCase):
             mock_refresh.assert_called_once_with("ref")
             self.assertAlmostEqual(result, 0.3, places=5)
 
+    def test_refreshes_token_when_get_connection_raises_401(self):
+        """Regressie: 401 op get_electricity_connection moet ook refresh triggeren.
+
+        Vroeger gooide get_electricity_connection requests.HTTPError i.p.v.
+        PermissionError, waardoor de refresh-flow oversprongen werd en cron
+        elk uur faalde tot handmatige interventie."""
+        raw_entry = [_entry(3_000_000, 0)]
+        with patch("fetch_prices.load_tokens", return_value={"access_token": "old", "refresh_token": "ref"}), \
+             patch("fetch_prices.refresh_access_token", return_value="new-tok") as mock_refresh, \
+             patch("fetch_prices.get_electricity_connection", side_effect=[PermissionError("401"), "conn"]) as mock_conn, \
+             patch("fetch_prices.fetch_prices", return_value=raw_entry) as mock_fp:
+            from fetch_prices import fetch_current_price
+            result = fetch_current_price()
+            mock_refresh.assert_called_once_with("ref")
+            self.assertEqual(mock_conn.call_count, 2)
+            self.assertAlmostEqual(result, 0.3, places=5)
+
 
 class TestFetchCurrentPriceNoEntryForCurrentHour(unittest.TestCase):
     """RuntimeError als er geen entry is voor het huidige uur."""
